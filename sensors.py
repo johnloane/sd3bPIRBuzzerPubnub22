@@ -127,4 +127,5 @@ if __name__ == "__main__":
     sensors_thread.start()
     pubnub.add_listener(MySubscribeCallback())
     pubnub.subscribe().channels(my_channel).execute()
+    print(pubnub.get_subscribed_channels())
 
