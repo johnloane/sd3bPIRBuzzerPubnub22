@@ -85,20 +85,6 @@ function publishSampleMessage() {
         pubnub.publish(publishPayload, function(status, response) {
             console.log(status, response);
         })
-
-function sendEvent(value)
-{
-	var request = new XMLHttpRequest();
-	request.onreadystatechange = function(){
-		if(this.readystate === 4){
-			if(this.status === 200){
-				if(this.responseText !== null){
-				}
-			}
-		}
-	};
-	request.open("POST", "status="+value, true);
-	request.send(null);
 }
 
 function handleClick(cb)
@@ -111,6 +97,30 @@ function handleClick(cb)
 	{
 		value = "OFF";
 	}
-	sendEvent(cb.id+"-"+value);
+	var ckbStatus = new Object();
+	ckbStatus[cb.id] = value;
+	var event = new Object();
+	event.event = ckbStatus;
+	publishUpdate(event, myChannel);
+}
+
+pubnub.subscribe({channels: [myChannel]})
+
+function publishUpdate(data, channel)
+{
+    pubnub.publish({
+        channel : channel,
+        message : data
+        },
+        function(status, response)
+        {
+            if(status.error){
+                console.log(status);
+            }
+            else
+            {
+                console.log("Message published with timetoken", response.timetoken);
+            }
+        });
 }
 	
