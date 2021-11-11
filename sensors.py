@@ -3,6 +3,9 @@ import threading
 import RPi.GPIO as GPIO
 import time
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 from pubnub.callbacks import SubscribeCallback
 from pubnub.enums import PNStatusCategory, PNOperationType
@@ -64,6 +67,7 @@ def publish(channel, msg):
 def my_publish_callback(envelope, status):
     # Check whether request successfully completed or not
     if not status.is_error():
+        print("Message successfully published")
         pass  # Message successfully published to specified channel.
     else:
         pass  # Handle message publish error. Check 'category' property to find out possible issue
@@ -83,6 +87,7 @@ class MySubscribeCallback(SubscribeCallback):
             # Connect event. You can do stuff like publish, and know you'll get it.
             # Or just use the connected event to confirm you are subscribed for
             # UI / internal notifications, etc
+            print("Connected to PubNub")
             pubnub.publish().channel(my_channel).message('Hello world!').pn_async(my_publish_callback)
         elif status.category == PNStatusCategory.PNReconnectedCategory:
             pass
@@ -94,32 +99,32 @@ class MySubscribeCallback(SubscribeCallback):
             # encrypt messages and on live data feed it received plain text.
 
 
-def message(self, message):
-    # Handle new message stored in message.message
-    try:
-        print(message.message, ": ", type(message.message))
-        msg = message.message
-        key = list(msg.keys())
-        if key[0] == "event":
-            self.handleEvent(msg)
-    except Exception as e:
-        print("Received: ", message.message)
-        print(e)
-        pass
+    def message(self, pubnub, message):
+        # Handle new message stored in message.message
+        try:
+            print(message.message, ": ", type(message.message))
+            msg = message.message
+            key = list(msg.keys())
+            if key[0] == "event":
+                self.handleEvent(msg)
+        except Exception as e:
+            print("Received: ", message.message)
+            print(e)
+            pass
 
-def handleEvent(self, msg):
-    global data
-    eventData = msg["event"]
-    key = list(eventData.keys())
-    print(key)
-    print(key[0])
-    if key[0] in sensor_list:
-        if eventData[key[0]] is True:
-            print("Setting the alarm")
-            data["alarm"] = True
-        elif eventData[key[0]] is False:
-            print("Turning alarm off")
-            data["alarm"] = False
+    def handleEvent(self, msg):
+        global data
+        eventData = msg["event"]
+        key = list(eventData.keys())
+        print(key)
+        print(key[0])
+        if key[0] in sensor_list:
+            if eventData[key[0]] == "ON":
+                print("Setting the alarm")
+                data["alarm"] = True
+            elif eventData[key[0]] == "OFF":
+                print("Turning alarm off")
+                data["alarm"] = False
 
 
 if __name__ == "__main__":
